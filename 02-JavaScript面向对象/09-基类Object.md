@@ -1,17 +1,28 @@
-# 08-Object 类-1-引用类型
+# 09-基类 Object
 
-## 二 Object 数据类型
+## 一 Object 类型
 
-object 数据类型可以通过 Object 对象来创建，Object 对象可以视为所有对象的祖先对象（基本类），创建方式：
+### 1.1 Object 类型基本使用
+
+Object 是 ECMAScript 所有引用类型的祖先，即基类（基本类）。
+
+创建方式：
 
 ```js
+// new 方式
 let obj1 = new Object()
 let obj2 = new Object() // 有效，但是不推荐该方式
-
 console.log(typeof obj1) // object
+console.log(obj1 == obj2) // false
+
+// 字面量方式
+let obj = {}
+console.log(obj1 == obj) // false
 ```
 
-## 三 Object 对象实例
+基于 Object 类型还有一些衍生的引用类型，如：Array、Function、Date、Math 等。所以 Object 与 Java 中的 java.lang.Object 类非常相似，也是派生其他对象的`基类`，即是所有类的祖先！
+
+### 1.2 Object 对象实例
 
 由于 Object 对象是所有对象的祖先对象（基类），所以其属性和方法，其他对象都会拥有：
 
@@ -25,45 +36,91 @@ console.log(typeof obj1) // object
 
 从上看出，Object 主要用来处理对象相关的操作。
 
-## 一 理解对象的成员
+## 二 Object 类常见使用场景
 
-### 1.1 对象的成员检测
+### 2.1 Object.keys()获取对象成员
 
-使用 属性直接查询、in、hasOwnProperty()、propertyIsEnumerable()等方式可以检测对象中是否存在该成员。但是如果对象的属性是通过继承得到的，那么上述操作就会出现一些特殊情况：
+Object.keys() 用来获取对象成员数组：
 
 ```js
-let father = {
-  surname: '李',
+let obj = {
+  name: 'lisi',
   age: 30,
+  run: function () {
+    console.log(this.name + ' is running')
+  },
 }
 
-let son = inherit(father) // inherit是自定义的继承函数
-son.age = 1
+let keys = Object.keys(obj)
+console.log(keys) //[ 'name', 'age', 'run' ]
 
-// in 方式
-console.log('age' in son) // true
-console.log('surname' in son) // true
-console.log('toString' in son) // true
-console.log('toString' in Object.prototype) // true
-
-// 是hasOwnProperty()方式：不会检查原型链
-console.log(son.hasOwnProperty('age')) // true
-console.log(son.hasOwnProperty('surname')) // false 继承字段无法识别
-console.log(son.hasOwnProperty('toString')) // false 继承字段无法识别
-console.log(Object.prototype.hasOwnProperty('toString')) // true
-
-// propertyIsEnumerable()方式：
-/*
-propertyIsEnumerable()是hasOwnProperty()的增强版，只有检测到是自有属性，且可枚举型为true时，返回值才为true
-可枚举性：JS代码创建的属性都是可枚举的，包括自有属性、继承属性都是可枚举的，但是可以使用特殊手段改变属性为不可枚举
-*/
-console.log(son.propertyIsEnumerable('age')) // true
-console.log(son.propertyIsEnumerable('surname')) // false
-console.log(son.propertyIsEnumerable('toString')) // false
-console.log(Object.prototype.propertyIsEnumerable('toString')) // false
+for (let item in obj) {
+  console.log(item) // name  age  run
+}
 ```
 
-使用 `son.age !== undefined` 的方式也可以用来判断对象是否存在属性，作用与 in 类似，但是在一些场合，这种做法欠妥周全：
+> 可枚举性：JS 代码创建的属性都是可枚举的，包括自有属性、继承属性都是可枚举的，但是可以使用特殊手段改变属性为不可枚举
+
+注意：**`Object.keys()` 只能获取对象中可被枚举的属性！**属性是否可枚举在下一节中有介绍。**只有可被枚举的属性，才能使用 `for in` 方式进行遍历**。
+
+与`Object.keys()` 类似的是：`Object.getOwnPropertyNames()`，该方法用于返回对象所有自有属性名称的数组。
+
+技巧延伸：在遍历对象属性时，往往需要一些过滤操作，如去除继承属性，去除函数属性，示例如下：
+
+```js
+for (let item in obj) {
+  if (!item.hasOwnProperty(item)) {
+    continue // 跳过继承的属性
+  }
+
+  if (typeof son[item] === 'function') {
+    continue // 跳过方法
+  }
+}
+```
+
+### 2.2 对象的成员检测
+
+使用属性直接查询、in、hasOwnProperty()、propertyIsEnumerable()等方式可以检测对象中是否存在该成员。但是如果对象的属性是通过继承得到的，那么上述操作就会出现一些特殊情况：
+
+```js
+class Father {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+  run() {
+    console.log('running...')
+  }
+}
+
+class Son extends Father {
+  constructor(name, age) {
+    super()
+  }
+}
+
+let s = new Son('四', 30)
+s.age = 40
+
+// in 方式 检测成员：继承方法也可以检测到
+console.log('age' in s) // true
+console.log('name' in s) // true
+console.log('toString' in s) // true
+
+// Object.hasOwnProperty()方式：不会检查原型链
+console.log(s.hasOwnProperty('age')) // true
+console.log(s.hasOwnProperty('name')) // true
+console.log(s.hasOwnProperty('toString')) // false 继承方法无法识别
+
+// Object.propertyIsEnumerable()()方式：是hasOwnProperty()的增强版
+// 只有检测到是自有属性，且可枚举型为true时，返回值才为true
+console.log(s.hasOwnProperty('age')) // true
+console.log(s.hasOwnProperty('name')) // true
+console.log(s.hasOwnProperty('toString')) // false 继承方法无法识别
+```
+
+延伸：使用 `s.age !== undefined` 的方式也可以用来判断对象是否存在属性，作用与 in 类似，但是在一些场合，这种做法欠妥周全：
 
 ```js
 let obj = { x: undefined } // 对象属性被显式赋值了undefined
@@ -71,79 +128,16 @@ console.log(obj.x !== undefined) // false
 console.log('x' in obj) // true
 ```
 
-### 1.2 对象属性遍历
+## 三 Object 深入限制对象成员
 
-对象的属性遍历经常是会用 `for in`方式：
+### 3.1 改变成员特征
 
-```js
-let father = {
-  surname: '李',
-  age: 30,
-  run: function () {
-    console.log('run...')
-  },
-}
+对象的成员在 JS 引擎中有着各种特征，比如：是否可访问等，这些特征并不能让开发者直接访问：
 
-let son = inherit(father)
-son.age = 1
-
-for (let item in son) {
-  console.log(item) // age  run  surname
-}
-```
-
-从上看出 for in 循环可以遍历对象中的可枚举属性（自有属性、继承属性等），对象内置方法不可枚举，但是这仅限于 ES5 及其之后标准。
-
-通常需要多属性进行一些过滤操作：
-
-```js
-if (!item.hasOwnProperty(item)) {
-  continue // 跳过继承的属性
-}
-
-if (typeof son[item] === 'function') {
-  continue // 跳过方法
-}
-```
-
-ES5 额外提供了两个函数用来枚举属性：
-
-- Object.keys()：返回数组，数组元素是可枚举的自有属性名称
-- Object.getOwnPropertyNames()：返回所有自有属性名称
-
-### 1.3 对象属性删除
-
-delete 运算符用来删除对象属性，但是不会删除原型中的属性。
-
-### 1.4 锁定对象
-
-锁定键：preventExtensions 方法锁定对象后，添加新的键，不会产生影响，甚至在严格模式下，会报错。
-
-封闭对象：seal() 方法可以直接彻底封闭对象。
-
-冻结对象：freeze 方法。冻结后的对象彻底无法修改、删除。
-
-```js
-let host = {
-  url: 'localhost:8080/api',
-  port: 443,
-}
-
-Object.freeze(host) // host已经无法变更
-host.port = 446
-console.log(host.port) // 443
-
-console.log(Object.isFrozen(host)) // true
-```
-
-# 一 改变成员特征
-
-对象的成员在 JS 引擎中有着各种特征，比如：是否可访问等。这些特征并不能让开发者直接访问：
-
-- Configurable：默认值为 true，表示能否通过 delete 删除属性从而重新定义属性，能否修改属性的特性，或者能否把属性修改为访问器属性。
-- Enumerable：默认值为 true，表示能否通过 for-in 循环返回属性
-- Writable：默认值为 true，表示能否修改属性的值
-- Value：默认值为 false，包含这个属性的数据值。读取属性值的时候，从这个位置读；写入属性值的时候，把新值保存在这个位置
+- `Configurable`：默认值为 true，表示能否通过 delete 删除属性从而重新定义属性，能否修改属性的特性，或者能否把属性修改为访问器属性。
+- `Enumerable`：默认值为 true，表示能否通过 for-in 循环返回属性
+- `Writable`：默认值为 true，表示能否修改属性的值
+- `Value`：默认值为 false，包含这个属性的数据值。读取属性值的时候，从这个位置读；写入属性值的时候，把新值保存在这个位置
 
 示例：
 
@@ -154,13 +148,7 @@ let p = {
 }
 ```
 
-对象成员的这些默认特征如果需要修改，需要借助 ES5 的 `Object.defineProperty()` 方法，该方法接收三个参数：
-
-- 属性所在对象
-- 属性的名字
-- 描述符，包括：configurable、 enumerable、 writable 和 value。
-
-示例：
+对象成员的这些默认特征如果需要修改，需要借助 ES5 的 `Object.defineProperty()` 方法，示例：
 
 ```js
 let person = {}
@@ -187,7 +175,7 @@ console.log(person.name) // lisi
 - defineProperty 方法可以被多次调用，但是一旦设置 configurable 设置为 false 之后就不能再调用了！
 - defineProperty 方法如果不指定内部属性，默认都是 false
 
-## 二 改变访问器属性
+### 3.2 改变访问器属性
 
 访问器属性是一对 getter、setter 函数（非必须），分别用于读取属性、写入属性。访问器属性也有四个特征：
 
@@ -243,7 +231,7 @@ book.year = 2005
 console.log(book.edition) //2
 ```
 
-## 三 定义多个属性
+### 3.3 定义多个属性
 
 为了方便开发，JS 也提供了同时定义多个属性的方法`Object.defineProperties()`：
 
@@ -270,9 +258,9 @@ Object.defineProperties(book, {
 })
 ```
 
-## 四 读取属性特性
+### 3.4 读取属性特性
 
-用 ECMAScript 5 的 Object.getOwnPropertyDescriptor()方法，可以取得给定属性的描述符。这个方法接收两个参数：属性所在的对象和要读取其描述符的属性名称。返回值是一个对象，如果是访问器属性，这个对象的属性有 configurable、 enumerable、 get 和 set；如果是数据属性，这个对象的属性有 configurable、 enumerable、 writable 和 value。例如：
+用 ECMAScript 5 的 `Object.getOwnPropertyDescriptor()`方法，可以取得给定属性的描述符。这个方法接收两个参数：属性所在的对象和要读取其描述符的属性名称。返回值是一个对象，如果是访问器属性，这个对象的属性有 configurable、 enumerable、 get 和 set；如果是数据属性，这个对象的属性有 configurable、 enumerable、 writable 和 value。例如：
 
 ```js
 let book = {}
@@ -297,12 +285,33 @@ Object.defineProperties(book, {
 })
 
 let descriptor = Object.getOwnPropertyDescriptor(book, '_year')
-alert(descriptor.value) //2004
-alert(descriptor.configurable) //false
-alert(typeof descriptor.get) //"undefined"
+console.log(descriptor.value) //2004
+console.log(descriptor.configurable) //false
+console.log(typeof descriptor.get) //"undefined"
 
 let descriptor = Object.getOwnPropertyDescriptor(book, 'year')
-alert(descriptor.value) //undefined
-alert(descriptor.enumerable) //false
-alert(typeof descriptor.get) //"function"
+console.log(descriptor.value) //undefined
+console.log(descriptor.enumerable) //false
+console.log(typeof descriptor.get) //"function"
+```
+
+### 3.5 锁定对象
+
+锁定键：preventExtensions 方法锁定对象后，添加新的键，不会产生影响，甚至在严格模式下，会报错。
+
+封闭对象：seal() 方法可以直接彻底封闭对象。
+
+冻结对象：freeze 方法。冻结后的对象彻底无法修改、删除。
+
+```js
+let host = {
+  url: 'localhost:8080/api',
+  port: 443,
+}
+
+Object.freeze(host) // host已经无法变更
+host.port = 446
+console.log(host.port) // 443
+
+console.log(Object.isFrozen(host)) // true
 ```
