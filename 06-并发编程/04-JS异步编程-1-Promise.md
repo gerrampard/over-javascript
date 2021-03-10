@@ -1,4 +1,4 @@
-# 07-异步编程-1-Promise
+# 04-JS 异步编程-1-Promise
 
 ## 一 Promise 简单使用
 

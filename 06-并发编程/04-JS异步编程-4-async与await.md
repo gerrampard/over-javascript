@@ -1,4 +1,4 @@
-# 07-异步编程-3-async 与 await
+# 04-JS 异步编程-4-async/await
 
 ## 一 ES7 的 async/await
 
@@ -6,7 +6,7 @@ Promise 虽然给异步编程带来了便利，但是在大型项目上用起来
 
 async/await 语法：
 
-```
+```js
 async function(){
 
     // await是等待的意思，等待异步操作返回的结果，会阻塞代码
