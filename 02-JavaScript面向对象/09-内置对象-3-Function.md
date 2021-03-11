@@ -89,8 +89,8 @@ outer()
 示例：
 
 ```js
-var a = 20
-var obj = {
+let a = 20
+let obj = {
   a: 40,
 }
 
@@ -121,9 +121,9 @@ apply 与 call 的区别是：第二个参数及其后续参数传递形式不�
 使用案例一：求数组最大值
 
 ```javascript
-var arr = [9, 1, 4, 10, 7]
-var max1 = Math.max(9, 1, 4, 10, 7)
-var max2 = Math.max.apply(null, arr)
+let arr = [9, 1, 4, 10, 7]
+let max1 = Math.max(9, 1, 4, 10, 7)
+let max2 = Math.max.apply(null, arr)
 console.log(max1) //输出10
 console.log(max2) //输出10
 ```
@@ -132,14 +132,14 @@ console.log(max2) //输出10
 
 ```javascript
 //obj是个伪数组，无法使用obj.0获取属性，也无法像数组那样用obj[0]获取
-var obj = {
+let obj = {
   0: 'a',
   1: 'b',
   2: 'c',
   length: 3,
 }
 // [].concat(1,2,3)会产生数组[1,2,3]
-var arr = [].concat.apply([], obj)
+let arr = [].concat.apply([], obj)
 console.log(arr) //输出['a','b','c']
 ```
 
@@ -152,12 +152,12 @@ function fn(num1, num2) {
   return this.a + num1 + num1
 }
 
-var a = 20
-var obj = {
+let a = 20
+let obj = {
   a: 40,
 }
 
-var _fn = fn.bind(obj, 1, 2)
+let _fn = fn.bind(obj, 1, 2)
 
 console.log(_fn === fn) // false
 _fn() // 43
