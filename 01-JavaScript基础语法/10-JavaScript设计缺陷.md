@@ -1,4 +1,4 @@
-# 01-JavaScript 设计缺陷
+# 10-JavaScript 设计缺陷
 
 ## 一 JavaScript 语言精粹
 
