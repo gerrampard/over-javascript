@@ -1,50 +1,6 @@
 # 01-DOM 概述
 
-## 一 理解浏览器内的 JavaScript
-
-ECMAScript 是 JavaScript 的语法核心，但是仅仅有语法，没有一些具体的 API 帮助，JS 也只是一个玩具。在浏览器环境中，浏览器为 JavaScript 提供了两大对象 DOM、BOM，让 JavaScript 能够游刃有余的操作浏览器相关特性。
-
-如图所示：
-
-![JavaScript组成](../images/javascript/02-1-01-01.svg)
-
-所以 JavaScript 包含三个方面：
-
-- ECMAScript：JavaScript 语法标准，如：类型、关键字、基本对象等，有 ES5、ES6(即 ES2015)、ES7(即 ES2016)，后续皆以年代为规范的名称
-- DOM：`Document Object Model`，JavaScript 操作网页元素的 API
-- BOM：`Browser Object Model`，JavaScript 操作浏览器部分功能的 API
-
-> API：Application Programming Interface，即用用程序编程接口，是包装好后提供给开发人员使用的工具
-
-有了浏览器为 JavaScript 提供的 DOM、BOM 对象，就能完成对网页中任何功能的开发。但由于浏览器厂商、版本的不同，DOM 和 BOM 对象的一些 API 往往使用方式不同，或者不兼容。现在 DOM 和 BOM 已经被纳入 HTML5 规范，相信未来会逐渐统一。
-
-> HTML5： HTML5 并不仅仅是 HTML4 的升级改进，而是设定了专门针对 Web 平台 API 的一系列规范，包括：视频、音频、图像、动画以及与设备的交互，将 Web 带入了一个成熟的应用平台。
-
 ## 二 DOM 简介
-
-### 2.1 DOM 概念
-
-HTML 加载完毕后，渲染引擎会在内存中把 HTML 文档，生成一个 DOM 树，即文档对象模型（DOM，Document Object Model）。DOM 是针对 HTML、XML 的 API 接口，描绘了一个层次化的树，允许开发人员对其进行增删改查。
-
-书写示例：
-
-```html
-<body>
-  <script>
-    // 入口函数：页面的结构、样式、节点等加载完毕后才去执行函数体。
-    window.onload = function () {
-      console.log('hello DOM')
-      console.log(document) // 查看 document 文档对象
-    }
-  </script>
-</body>
-```
-
-上述示例中输出的 document 对象，其实就是整个 HTML 文档，如图所示：
-
-![dom](../images/dom/01.png)
-
-注意：DOM 中所有的 API 都挂载在了 `window` 这个对象上，为了方便，window 可以忽略不写。
 
 ### 2.2 DOM 的级别
 

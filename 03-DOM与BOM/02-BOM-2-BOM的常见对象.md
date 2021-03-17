@@ -1,26 +1,33 @@
-# 02-BOM 常见对象
+# 02-BOM-2-BOM 的常见对象
 
 ## 一 location 对象
 
 ### 1.1 location 基础使用
 
-location 用户获取、设置窗体的 URL，以及解析 URL。
+location 用户获取、设置窗体的 URL，以及解析 URL。location 对象既是 window 对象的属性，也是 document 对象的属性，即 window.location 和 document.location 引用的是同一个对象。
 
-注意：location 对象既是 window 对象的属性，也是 document 对象的属性，即 window.location 和 document.location 引用的是同一个对象。
+location 上常用的成员：
 
 ```js
-location.href // "http:/www.wrox.com"
+location.host // "www.demo.com:80" 服务器名及端口号
+location.hostname // "www.demo.com" 服务器名
+location.href // "http:/www.demo.com" URL的触发地址
+location.origin // "http://www.demo.com" URL 的只读源地址
 location.pathname // /user/order
 location.search // "?name=lisi"
+location.hash // "#contents"
 location.assign() // 重定向
 location.replace() // 不记录历史，直接替换当前页面
-location.reload() // 重载页面，即强制刷新
+location.reload() // 重载页面，也可能是从缓存加载
+location.reload(true) // 重载页面，从服务器加载
 ```
 
 ### 1.2 解析查询参数
 
+自定义一个解析函数：
+
 ```js
-function urlQuery() {
+function getQueryStringArgs() {
   //取得查询字符串并去掉开头的问号
   let qs = location.search.length > 0 ? location.search.substring(1) : "",
     //保存数据的对象
@@ -40,11 +47,42 @@ function urlQuery() {
       args[name] = value;
     }
   }
+
   return args;
 }
+
+// 使用示例
+let args = getQueryStringArgs()
+console.log(args['username'])
 ```
 
-### 二 navigator 对象
+浏览器也提供了标准的 url 参数构造对象 URLSearchParams：
+
+```js
+let qs = '?q=javascript&num=10'
+let searchParams = new URLSearchParams(qs)
+console.log(searchParams.toString()) // " q=javascript&num=10"
+searchParams.has('num') // true
+searchParams.get('num') // 10
+searchParams.set('page', '3')
+console.log(searchParams.toString()) // " q=javascript&num=10&page=3"
+searchParams.delete('q')
+console.log(searchParams.toString()) // " num=10&page=3"
+```
+
+大多数支持 URLSearchParams 的浏览器也支持将 URLSearchParams 的实例用作可迭代对象：
+
+```js
+let qs = '?q=javascript&num=10'
+let searchParams = new URLSearchParams(qs)
+for (let param of searchParams) {
+  console.log(param)
+}
+// ["q", "javascript"]
+// ["num", "10"]
+```
+
+## 二 navigator 对象
 
 navigator 对象用于标识浏览器：
 
@@ -53,30 +91,13 @@ navigator.appCodeName // 浏览器名称，通常为Mozilla
 navigator.userAgent // 用户代理字符串
 ```
 
-## 三 history 对象
+## 三 screen 对象
 
-history 对象保存的是网页浏览器历史记录：
+screen 对象保存了客户端的能力信息，如像素宽度、像素高度，很少使用。
 
-```js
-//后退一页
-history.go(-1)
-//前进一页
-history.go(1)
-//前进两页
-history.go(2)
+## 四 H5 新增成员
 
-//跳转到最近的 wrox.com 页面
-history.go('wrox.com')
-//跳转到最近的 nczonline.net 页面
-history.go('nczonline.net')
-
-//后退一页
-history.back()
-//前进一页
-history.forward()
-```
-
-## 一 H5 新增 API-Web 存储
+### 4.1 storage 存储机制
 
 传统 web 存储方式以 `document.cookie` 来进行，但是其存储大小只有 4k 左右，并且解析复杂。在 HTML5 规范中使用 Storage 存储，分别有两种存储方式：
 
@@ -98,11 +119,25 @@ history.forward()
 
 贴士：一些其他网络存储方案 WebSQL、IndexDB 已经被 w3c 放弃了。
 
-## 二 H5 新增 API-历史管理
+### 4.1 history 历史状态
 
-在以前，通过 hashchange 事件，可以知道 URL 的参数什么时候发生了变化。H5 额外提供了 history 状态管理对象。
+history 记录了用户曾经浏览过的页面(URL),并可以实现浏览器前进与后退相似导航的功能。
 
-通过状态管理，可以改变浏览器访问的 URL：
+```js
+// 后退一页
+history.go(-1)
+// 前进一页
+history.go(1)
+// 前进两页
+history.go(2)
+
+// 简写方法：后退一页
+history.back()
+// 简写方法：前进一页
+history.forward()
+```
+
+在以前，通过 hashchange 事件，可以知道 URL 的参数什么时候发生了变化，H5 的 history 对象额外提供了历史状态管理功能，通过状态管理，可以改变浏览器访问的 历史：
 
 ```js
 history.pushState({ name: 'Nicholas' }, "Nicholas' page", 'nicholas.html')
@@ -114,7 +149,7 @@ history.pushState({ name: 'Nicholas' }, "Nicholas' page", 'nicholas.html')
 history.replaceState({ name: 'Greg' }, "Greg's page")
 ```
 
-## 三 H5 新增 API-地理位置
+### 4.2 navigator.geolocation 地理位置
 
 HTML5 提供了 Geolocation 地理位置支持。目前大多数浏览器都可以支持（IE9+）。出于安全考虑，部分最新的浏览器只允许通过 HTTPS 协议使用 GeolocationAPI，在 http 协议下回跑出异常，当然本地开发不会有问题。
 
@@ -167,7 +202,7 @@ let watchID = navigator.geolocation.watchPosition(success, error, option)
 navigator.geolocation.clearWatch(watchID)
 ```
 
-## 四 H5 新增 API-检测用户网络状态
+### 4.3 onLine 检测用户网络状态
 
 我们可以通过 window.onLine 来检测，用户当前的网络状况，返回一个布尔值
 
@@ -175,71 +210,9 @@ navigator.geolocation.clearWatch(watchID)
 window.online //用户网络连接时被调用
 window.offline //用户网络断开时被调用
 window.addEventListener('online', function () {
-  alert('已经建立了网络连接')
+  console.log('已经建立了网络连接')
 })
 window.addEventListener('offline', function () {
-  alert('已经失去了网络连接')
+  console.log('已经失去了网络连接')
 })
-```
-
-## 五 H5 新增 API-离线应用
-
-离线应用可以帮助用户在没有网络时使用 web 程序，H5 的离线功能包含：离线资源缓存、在线状态监测、本地数据存储等。  
-离线 web 应用比普通的 web 应用多了一个描述文件，该文件用来列出需要缓存和永不缓存的资源，描述文件的扩展名为：.manifest 或者 .appcache(推荐使用)。  
-首先需要在项目目录下创建 offline.appcache 文件：
-
-```txt
-CACHE MANIFEST      # 说明这是离线应用描述文件
-CACHE:              # 会被缓存的资源列表
-index.html
-index.js
-NETWORK:            # 总是从web获取的资源列表
-test.js
-```
-
-html 文件需要添加如下配置：
-
-```html
-<html lmanifest="./offline.appcache"></html>
-```
-
-## 六 H5 新增 API-跨文档通信
-
-在过去，跨文档通信（跨源、跨窗口，cross-document messaging）往往是与服务端进行数据交互来实现的，并且需要借助轮询或者 Connect 技术来监听消息。
-
-H5 提供了 PostMessages()方法 实现安全的跨源通信：
-
-```js
-// 参数一：消息体
-// 参数二：消息来自哪个域
-// 参数三：可选。是一串和message同时传递的Transferable对象，这些对象的所有权将被转译给消息的接收方，而发送乙方将不再保有所有权
-
-let iframeWindow = document.getElementById('myframe').contentWindow
-iframeWindow.postMessage('A secret', 'http://www.demo.com')
-```
-
-iframe 应用实例：
-
-```html
-<button id="btn">点击发送消息给iframe</button>
-<iframe src="http:127.0.0.1/iframe.html"></iframe>
-<script>
-  let btn = document.querySelector('#btn')
-  let data = ['周一', '周二', '周五']
-  btn.onclick = function () {
-    alert('执行发送数据给iframe？')
-    window.parent.postMessage(data, 'http:127.0.0.1/iframe.html')
-  }
-</script>
-```
-
-iframe 接受数据：
-
-```javascript
-    <script>
-        window.addEventListener("data", e =>{
-            console.log("origin=", e.origin);
-            console.log("data=", e.data);
-        });
-    </script>
 ```

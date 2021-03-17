@@ -1,25 +1,25 @@
-# 01-BOM 概述
+# 02-BOM-1-BOM 的基本使用
 
-## 一 BOM 简介
-
-BOM 是浏览器为开发者提供的 JavaScript 浏览器对象模型（Browser Object Modle），主要针对浏览器窗口、子窗口（frame）。
-
-BOM 提供的一些常见操作：
-
-- navigator 对象：提供浏览器本身的信息
-- location 对象：提供加载页面的信息
-- performance 对象：提供浏览器内存、时间统计等信息
-- 支持 cookie
-- 自持 Ajax
-
-## 二 window 对象的使用
-
-### 2.1 window 对象简介
+## 一 window 对象概述
 
 BOM 的核心对象是 window，代表了浏览器的一个实例，也是浏览器的顶级对象，包括 DOM 的实例 document 也挂载在该对象上。
 
+window 对象有两重身份：
+
+- ECMAScript 中的 Global 对象
+- 浏览器窗口的 JS 接口
+
+window 对象上挂载的主要对象有：document、location、navigation、screen、history。在书写挂载在 window 上的成员时，window 可以省略。
+
+## 二 window 的基本使用
+
+### 2.1 作为 Global 作用域
+
+由于 window 是 ECMAScript 的 Glonal 对象，所以 var 声明的全局变量、函数都会成为 window 对象的属性和方法：
+
 ```js
-let age = 29
+var age = 29
+
 function sayAge() {
   alert(this.age)
 }
@@ -28,14 +28,46 @@ console.log(window.age) //29
 window.sayAge() //29
 ```
 
-window 对象上挂载的主要对象有：document、location、navigation、screen、history。在书写挂载在 window 上的成员时，window 可以省略。
+let/const 声明的变量不会添加给全局对象：
 
-### 2.2 window 的成员使用
+```js
+let age = 20
+console.log(window.age) //undefined
+```
 
-注意：
+访问未声明变量会报错：
 
-- 在 window 上定义的属性可以使用 delete 删除，但是直接定义的全局变量不能使用 delete 删除。
-- 在 window 上访问未定义的属性，只是一次查询，不会报错，但是其他地方直接使用未定义的变量，如：`var num = oldNum`，若 oldNum 未定义则报错！
+```js
+var newVal = oldVal
+console.log(olVal)
+```
+
+### 2.2 窗口关系与 frame
+
+window 对象上绑定了一些属性，可以访问与自己有关的窗口：
+
+- window.self：自己
+- window.top：最外层的窗口，即浏览器窗口本身
+- window.parent：当前窗口的父窗口
+
+如果页面中包含框架，则每个框架都有自己的 window 对象，并且保存在 frames 集合中：
+
+```js
+<frameset rows="160,*">
+    <frame src="frame.htm" name="topFrame">
+    <frameset cols="50%,50%">
+        <frame src="anotherframe.htm" name="leftFrame">
+        <frame src="yetanotherframe.htm" name="rightFrame">
+    </frameset>
+</frameset>
+```
+
+上述页面可以通过
+window.frames[0]或者 window.frames["topFrame"]来引用上方的框架。
+
+### 2.3 window 成员的删除
+
+在 window 上定义的属性可以使用 delete 删除，但是直接定义的全局变量不能使用 delete 删除。
 
 ```js
 var age = 29
@@ -126,11 +158,19 @@ console.error('打印错误')
 window.open('http://www.wrox.com/', 'topFrame')
 ```
 
-### 4.4 窗口位置
+### 4.4 系统对话框
 
-IE、 Safari、 Opera 和 Chrome 都提供了 screenLeft 和 screenTop 属性，分别用于表示窗口相对于屏幕左边和上边的位置。 Firefox 则在 screenX 和 screenY 属性中提供相同的窗口位置信息， Safari 和 Chrome 也同时支持这两个属性。
+下列三个方法可以让浏览器调用系统对话框向用户显示消息：
 
-使用下列代码可以跨浏览器取得窗口左边和上边的位置:
+- alert()：弹出警告框
+- confirm()：弹出确认框
+- prompt()：弹出提示输入框
+
+### 4.5 窗口位置 screenLeft 和 screenTop
+
+大部分浏览器都提供了 screenLeft 和 screenTop 属性，分别用于表示窗口相对于屏幕左边和上边的位置。火狐在 screenX 和 screenY 属性提供相同的窗口位置信息。
+
+使用下列兼容代码可以跨浏览器取得窗口左边和上边的位置:
 
 ```js
 let leftPos =
@@ -140,12 +180,11 @@ let topPos =
   typeof window.screenTop == 'number' ? window.screenTop : window.screenY
 ```
 
-IE、 Opera 中， screenLeft 和 screenTop 中保存的是从屏幕左边和上边到由 window 对象表示的页面可见区域的距离。换句话说，如果 window 对象是
-最外层对象，而且浏览器窗口紧贴屏幕最上端——即 y 轴坐标为 0，那么 screenTop 的值就是位于页面可见区域上方的浏览器工具栏的像素高度。但是，在 Chrome、 Firefox 和 Safari 中， screenY 或 screenTop 中保存的是整个浏览器窗口相对于屏幕的坐标值，即在窗口的 y 轴坐标为 0 时返回 0。
+IE 中， screenLeft 和 screenTop 中保存的是从屏幕左边和上边到由 window 对象表示的页面可见区域的距离。换句话说，如果 window 对象是最外层对象，而且浏览器窗口紧贴屏幕最上端——即 y 轴坐标为 0，那么 screenTop 的值就是位于页面可见区域上方的浏览器工具栏的像素高度。但是，在 Chrome、 Firefox 和 Safari 中， screenY 或 screenTop 中保存的是整个浏览器窗口相对于屏幕的坐标值，即在窗口的 y 轴坐标为 0 时返回 0。
 
 Firefox、 Safari 和 Chrome 始终返回页面中每个框架的 top.screenX 和 top.screenY 值。即使在页面由于被设置了外边距而发生偏移的情况下，相对于 window 对象使用 screenX 和 screenY 每次也都会返回相同的值。而 IE 和 Opera 则会给出框架相对于屏幕边界的精确坐标值。
 
-所以无法在跨浏览器的条件下取得窗口左边和上边的精确坐标值。moveTo()和 moveBy()方法倒是有可能将窗口精确地移动到一个新位置：
+所以无法在跨浏览器的条件下取得窗口左边和上边的精确坐标值。moveTo()和 moveBy()方法有可能将窗口精确地移动到一个新位置：
 
 ```js
 //将窗口移动到屏幕左上角
@@ -158,25 +197,10 @@ window.moveTo(200, 300)
 window.moveBy(-50, 0)
 ```
 
-注意：这两个方法可能会被浏览器禁用；而且，在 Opera 和 IE 7（及更高版本）中默认就是禁用的。另外，这两个方法都不适用于框架，只能对最外层的 window 对象使用。
+注意：这两个方法可能会被浏览器禁用，在 Opera 和 IE 7（及更高版本）中默认就是禁用的。另外，这两个方法都不适用于框架，只能对最外层的 window 对象使用。
 
-## 五 frame
+### 4.6 窗口大小
 
-如果页面中包含框架，则每个框架都有自己的 window 对象，并且保存在 frames 集合中：
+outerWidth、outerHeight 返回浏览器窗口自身的大小，innerWidth、innerHeight 返回浏览器窗口中页面视口的大小。
 
-```js
-<frameset rows="160,*">
-    <frame src="frame.htm" name="topFrame">
-    <frameset cols="50%,50%">
-        <frame src="anotherframe.htm" name="leftFrame">
-        <frame src="yetanotherframe.htm" name="rightFrame">
-    </frameset>
-</frameset>
-```
-
-上述页面可以通过
-window.frames[0]或者 window.frames["topFrame"]来引用上方的框架。与窗口相关的对象还有：
-
-- top：指向最外层框架，即浏览器窗口，上述代码最好使用 top，而不是 window
-- parent：始终指向当前框架的
-  直接上层框架
+通过 resizeTo()、resizeBy() 可以调整窗口大小。
