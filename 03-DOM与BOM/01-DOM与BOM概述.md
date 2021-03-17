@@ -59,3 +59,5 @@ HTML 加载完毕后，渲染引擎会在内存中把 HTML 文档，生成一个
 ![dom](../images/dom/01.png)
 
 注意：DOM 中所有的 API 都挂载在了 `window` 这个对象上，为了方便，window 可以忽略不写。
+
+DOM 经过了 Level 1 到现在 Level 4 的发展，每次级别的提升，都是 W3C 组织增加了一些 DOM 的操作方法！
