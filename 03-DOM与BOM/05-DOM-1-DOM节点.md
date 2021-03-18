@@ -131,7 +131,7 @@ Attr 节点的类型数值为 2，nodeName 为其特性名称，nodeValue 为其
 
 ## 三 节点基础操作
 
-### 2.1 节点选择
+### 3.1 节点选择
 
 需要先获取节点，然后才能依据需求对网页进行操作。获取的方式有：
 
@@ -241,7 +241,214 @@ element.getAttribute('backgroundColor') // 获取背景色
 ```js
 // 直接以行内样式方式修改：属性名一般是驼峰命名法
 element.style.backgroundColor = 'red'
+element.style.border = '1px solid black'
 
 // 修改类名
 element.className = '新的类名'
+
+// 重写元素所有属性
+element.style.cssText = 'width: 25px; height: 100px; background-color: green'
+
+// 移除某个属性的样式，采用默认样式
+element.style.removeProperty('border')
+```
+
+### 3.6 节点比较
+
+isSameNode()和 isEqualNode():
+
+```js
+let div1 = document.createElement('div')
+div1.setAttribute('class', 'box')
+
+let div2 = document.createElement('div')
+div2.setAttribute('class', 'box')
+
+console.log(div1.isSameNode(div1)) // true
+console.log(div1.isSameNode(div2)) // false
+
+console.log(div1.isEqualNode(div2)) // true
+```
+
+## 四 节点遍历
+
+### 4.0 深度优先遍历
+
+DOM2 Traversal and Range 模块定义了两个类型用于辅助顺序遍历 DOM 结构。这两个类型——NodeIterator 和 TreeWalker——从某个起点开始执行对 DOM 结构的深度优先遍历。
+
+假设有以下 html 结构：
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Example</title>
+  </head>
+  <body>
+    <p><b>Hello</b> world!</p>
+  </body>
+</html>
+```
+
+如果以 document 为根节点进行遍历：
+
+![DOM遍历](../images/dom/dom-tree-01.png)
+
+### 4.1 NodeIterator
+
+对下面文档中的 body 内的元素进行遍历示例：
+
+```html
+<html>
+  <body>
+    <div id="div">
+      <p><b>Hello</b> world!</p>
+      <ul>
+        <li>List item 1</li>
+        <li>List item 2</li>
+        <li>List item 3</li>
+      </ul>
+    </div>
+
+    <script>
+      let div = document.getElementById('div')
+
+      let iterator = document.createNodeIterator(
+        div, // 从哪个节点开始遍历
+        NodeFilter.SHOW_ELEMENT, // whatToShow 参数：应该访问哪些节点
+        null, // filter参数：是否接收或跳过特定节点
+        false // 是否扩展实体引用，在HTML中无效！
+      )
+
+      let node = iterator.nextNode()
+      while (node !== null) {
+        console.log(node.tagName) // 输出标签名
+        node = iterator.nextNode()
+      }
+    </script>
+  </body>
+</html>
+```
+
+注意：nextNode()和 previousNode()方法共同维护 NodeIterator 对 DOM 结构的内部指针，因此修改 DOM 结构也会体现在遍历中。
+
+第二个参数 whatToShow 是一个位掩码，通过应用一个或多个过滤器来指定访问哪些节点，常见定义有：
+
+```txt
+NodeFilter.SHOW_ALL，所有节点。
+NodeFilter.SHOW_ELEMENT，元素节点。
+NodeFilter.SHOW_ATTRIBUTE，属性节点。由于 DOM 的结构，因此实际上用不上。
+NodeFilter.SHOW_TEXT，文本节点。
+NodeFilter.SHOW_COMMENT，注释节点。
+NodeFilter.SHOW_DOCUMENT，文档节点。
+NodeFilter.SHOW_DOCUMENT_TYPE，文档类型节点。
+```
+
+whatToShow 值可以组合使用：
+
+```js
+let whatToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT
+```
+
+创建迭代器示例：
+
+```js
+// 创建过滤器方式一
+let filter1 = {
+  acceptNode(node) {
+    return node.tagName.toLowerCase() == 'p'
+      ? NodeFilter.FILTER_ACCEPT
+      : NodeFilter.FILTER_SKIP
+  },
+}
+
+// 创建过滤器方式二
+let filter2 = function (node) {
+  return node.tagName.toLowerCase() == 'p'
+    ? NodeFilter.FILTER_ACCEPT
+    : NodeFilter.FILTER_SKIP
+}
+
+// 创建迭代器
+let iterator1 = document.createNodeIterator(
+  root,
+  NodeFilter.SHOW_ELEMENT,
+  filter,
+  false
+)
+
+// 创建一个简单的遍历所有节点的迭代器
+let iterator2 = document.createNodeIterator(
+  document,
+  NodeFilter.SHOW_ALL,
+  null,
+  false
+)
+```
+
+### 4.2 TreeWalker
+
+TreeWalker 是 NodeIterator 的高级版，额外添加了遍历的方向，示例：
+
+```js
+let div = document.getElementById('div1')
+
+let filter = function (node) {
+  return node.tagName.toLowerCase() == 'li'
+    ? NodeFilter.FILTER_ACCEPT
+    : NodeFilter.FILTER_SKIP
+}
+
+let walker = document.createTreeWalker(
+  div,
+  NodeFilter.SHOW_ELEMENT,
+  filter,
+  false
+)
+let node = iterator.nextNode()
+while (node !== null) {
+  console.log(node.tagName) // 输出标签名
+  node = iterator.nextNode()
+}
+```
+
+方向示例：
+
+```txt
+parentNode()，遍历到当前节点的父节点。
+firstChild()，遍历到当前节点的第一个子节点。
+lastChild()，遍历到当前节点的最后一个子节点。
+nextSibling()，遍历到当前节点的下一个同胞节点。
+previousSibling()，遍历到当前节点的上一个同胞节点。
+```
+
+节点过滤器（ filter）除了可以返回 NodeFilter.FILTER_ACCEPT 和 NodeFilter.FILTER_SKIP，还可以返回 NodeFilter.FILTER_REJECT。在使用 NodeIterator 时， NodeFilter.FILTER_SKIP 和 NodeFilter.FILTER_REJECT 是一样的。但在使用 TreeWalker 时， NodeFilter.FILTER_SKIP 表示跳过节点，访问子树中的下一个节点，而 NodeFilter.FILTER_REJECT 则表示跳过该节点以及该节点的整个子树。例如，如果把前面示例中的过滤器函数改为返回 NodeFilter.FILTER_REJECT（而不是 NodeFilter.FILTER_SKIP），则会导致遍历立即返回，不会访问任何节点。这是因为第一个返回的元素是`<div>`，其中标签名不是"li"，因此过滤函数返回 NodeFilter.FILTER_REJECT，表示要跳过整个子树。因为`<div>`本身就是遍历的根节点，所以遍历会就此结束。
+
+### 4.3 TreeWalker 节点跳跃
+
+TreeWalker 真正的威力是可以在 DOM 结构中四处游走。如果不使用过滤器，单纯使用 TreeWalker 的漫游能力同样可以在 DOM 树中访问`<li>`元素：
+
+```js
+let div = document.getElementById('div1')
+let walker = document.createTreeWalker(
+  div,
+  NodeFilter.SHOW_ELEMENT,
+  null,
+  false
+)
+walker.firstChild() // 前往<p>
+walker.nextSibling() // 前往<ul>
+let node = walker.firstChild() // 前往第一个<li>
+while (node !== null) {
+  console.log(node.tagName)
+  node = walker.nextSibling()
+}
+```
+
+TreeWalker 类型也有一个名为 currentNode 的属性，表示遍历过程中上一次返回的节点（无论使用的是哪个遍历方法）。可以通过修改这个属性来影响接下来遍历的起点:
+
+```js
+let node = walker.nextNode()
+console.log(node === walker.currentNode) // true
+walker.currentNode = document.body // 修改起点
 ```

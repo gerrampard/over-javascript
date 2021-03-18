@@ -60,4 +60,22 @@ HTML 加载完毕后，渲染引擎会在内存中把 HTML 文档，生成一个
 
 注意：DOM 中所有的 API 都挂载在了 `window` 这个对象上，为了方便，window 可以忽略不写。
 
+### 2.3 DOM 的演进
+
 DOM 经过了 Level 1 到现在 Level 4 的发展，每次级别的提升，都是 W3C 组织增加了一些 DOM 的操作方法！
+
+DOM1（ DOM Level 1）主要定义了 HTML 和 XML 文档的底层结构。
+
+DOM2（ DOM Level 2）和 DOM3（ DOM Level 3）在这些结构之上加入更多交互能力，提供了更高级的 XML 特性。
+
+DOM2 和 DOM3 是按照模块化的思路来制定标准的，每个模块之间有一定关联，但分别针对某个 DOM 子集：
+
+```txt
+DOM Core：在 DOM1 核心部分的基础上，为节点增加方法和属性。
+DOM Views：定义基于样式信息的不同视图。
+DOM Events：定义通过事件实现 DOM 文档交互。
+DOM Style：定义以编程方式访问和修改 CSS 样式的接口。
+DOM Traversal and Range：新增遍历 DOM 文档及选择文档内容的接口。
+DOM HTML：在 DOM1 HTML 部分的基础上，增加属性、方法和新接口。
+DOM Mutation Observers：DOM4 级模块，定义基于 DOM 变化触发回调的接口。
+```
