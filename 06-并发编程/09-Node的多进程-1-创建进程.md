@@ -1,4 +1,4 @@
-# 08-并发模块 child-process
+# 09-Node 的多进程-1-创建进程
 
 ## 一 Node 的进程管理
 
@@ -9,7 +9,7 @@ Node 从 0.1 版本开始提供了 child_process 模块，提供多进程支持�
 新建一个文件：worker.js
 
 ```js
-var http = require('http')
+let http = require('http')
 
 http
   .createServer(function (req, res) {
@@ -22,20 +22,20 @@ http
 新建一个文件：master.js
 
 ```js
-var child_process = require('child_process')
-var os = require('os')
+let child_process = require('child_process')
+let os = require('os')
 
-var cpuNum = os.cpus().length
+let cpuNum = os.cpus().length
 console.log('当前CPU数量为：', cpuNum)
 
-for (var i = 0; i < cpuNum; i++) {
+for (let i = 0; i < cpuNum; i++) {
   child_process.fork('./worker.js')
 }
 ```
 
 启动并查看 node 进程数量(和 cpu 数量相等)：
 
-```
+```txt
 node master.js
 
 # 新开启一个命令行查看进程数
@@ -47,7 +47,7 @@ ps aux|grep worker.js
 - 主进程：不负责具体业务，而是负责调度和管理工作进程
 - 工作进程：负责具体的业务处理
 
-![](../images/node/process-01.svg)
+![工作进程](../images/node/process-01.svg)
 
 通过 fork()复制的进程都是一个独立的进程，每个进程中都包含着一个独立、全新的 V8 实例，需要至少 30 毫秒启动时间，至少 10MB 的内存。
 
@@ -67,7 +67,7 @@ child_process 模块提供了四种创建子进程的方法：
 四者在执行第一节中 worker 的代码分别如下：
 
 ```js
-var cp = require('child_process')
+let cp = require('child_process')
 
 cp.spwan('node', ['worker.js'])
 cp.exec('node worker.js', function (err, stdout, stderr) {})

@@ -1,4 +1,4 @@
-# 09-Node 进程间通信
+# 09-Node 的多进程-2-进程间通信
 
 ## 一 Node 进程间通信演示
 
@@ -7,9 +7,9 @@
 创建 master.js：
 
 ```js
-var cp = require('child_process')
+let cp = require('child_process')
 
-var childP = cp.fork('./worker.js')
+let childP = cp.fork('./worker.js')
 
 childP.on('message', function (msg) {
   console.log('master get：', msg)
@@ -34,7 +34,7 @@ process.send({
 
 启动：
 
-```
+```txt
 node master.js
 ```
 
@@ -44,11 +44,11 @@ node master.js
 
 Node 中进程间通信的实现依靠的是底层的 libuv 提供的一层类似管道的抽象，该抽象在 Linux 上采用 Unix Domain Socket 实现，在 Win 上通过命名管道实现。
 
-![](../images/node/process-02.png)
+![进程通信原理](../images/node/process-02.png)
 
 父进程在实际创建子进程之前，会创建 IPC 通道并监听它，然后才真正创建出子进程，并通过环境变量（NODE_CHANNEL_FD）告诉子进程这个 IPC 通道的文件描述符。子进程在启动的过程中，根据文件描述符去连接这个已经存在的 IPC 通道，从而完成父子进程之间的连接：
 
-![](../images/node/process-03.png)
+![进程通信原理](../images/node/process-03.png)
 
 建立连接之后的父子进程可以进行自由通信，因为 Node 使用的是 Domain Socket，与网络 Socket 非常相似，属于双向通信，而且是在内核中直接完成了进程间通信，无需网络层，非常高效。在 Node 中，IPC 通道被抽象为了 Stream 对象，调用 send()时会发送数据（类似 write()），接收到的消息会通过 message 事件触发给应用层。
 
@@ -62,7 +62,7 @@ Node 中进程间通信的实现依靠的是底层的 libuv 提供的一层类�
 
 上述为问题的解决方式一般是：主进程监听主端口，负责接收所有的请求，然后再将这些请求分别代理到不同的端口的工作进程上。
 
-![](../images/node/process-04.png)
+![句柄](../images/node/process-04.png)
 
 这里会暴露一个问题：主进程每接收到一个连接，就会创建一个新的文件描述符，并将请求负载（代理）到某个工作进程，文件描述符在操作系统中是有限的（双倍浪费！）。Node 为了解决该问题，在 send()方法中额外提供了第二个可选参数：句柄。
 
@@ -79,11 +79,11 @@ child.send(message, [sendHandle])
 主进程：
 
 ```js
-var cp = require('child_process')
+let cp = require('child_process')
 
-var child = cp.fork('child.js')
+let child = cp.fork('child.js')
 
-var server = require('net').createServer()
+let server = require('net').createServer()
 
 server.on('connection', function (socket) {
   socket.end('handled by parent\n')
@@ -108,7 +108,7 @@ process.on('message', function (msg, server) {
 
 在该示例中，直接将一个 TCP 连接发送给了子进程，启动方式如下:
 
-```
+```txt
 # 启动
 node master.js
 
@@ -124,12 +124,12 @@ curl "http://127.0.0.1:1337/"
 master.js 如下：
 
 ```js
-var cp = require('child_process')
+let cp = require('child_process')
 
-var child1 = cp.fork('child.js')
-var child2 = cp.fork('child.js')
+let child1 = cp.fork('child.js')
+let child2 = cp.fork('child.js')
 
-var server = require('net').createServer()
+let server = require('net').createServer()
 
 server.on('connection', function (socket) {
   socket.end('handled by parent\n')
@@ -155,7 +155,7 @@ process.on('message', function (msg, server) {
 
 再次测试：
 
-```
+```txt
 # 启动
 node master.js
 
@@ -175,12 +175,12 @@ curl "http://127.0.0.1:1337/"
 master.js 在传递出句柄后，直接关闭：
 
 ```js
-var cp = require('child_process')
+let cp = require('child_process')
 
-var child1 = cp.fork('worker.js')
-var child2 = cp.fork('worker.js')
+let child1 = cp.fork('worker.js')
+let child2 = cp.fork('worker.js')
 
-var server = require('net').createServer()
+let server = require('net').createServer()
 
 server.listen(1337, function () {
   child1.send('server', server)
@@ -192,9 +192,9 @@ server.listen(1337, function () {
 child.js 使用 http 模块处理业务：
 
 ```js
-var http = require('http')
+let http = require('http')
 
-var server = http.createServer(function (req, res) {
+let server = http.createServer(function (req, res) {
   res.writeHead(200, { 'Content-Type': 'text/plain' })
   res.end('handled by child, pid is ' + process.pid + '\n')
 })
@@ -212,11 +212,11 @@ process.on('message', function (msg, tcpSocket) {
 
 主进程将请求发送给工作进程：
 
-![](../images/node/process-05.png)
+![主进程将请求发送给工作进程](../images/node/process-05.png)
 
 主进程发送完句柄并关闭监听后：
 
-![](../images/node/process-06.png)
+![主进程将请求发送给工作进程](../images/node/process-06.png)
 
 此时多个子进程就可以同时监听相同的端口，没有端口重复监听的异常了。
 
@@ -244,8 +244,8 @@ send()方法在讲消息发送到 IPC 管道前，将消息组装成 2 个对象
 
 ```js
 function(message, handle, emit){
-    var self = this;
-    var server = new net.Server();
+    let self = this;
+    let server = new net.Server();
     server.listen(handle, function(){
         emit(server);
     });
