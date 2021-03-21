@@ -1,4 +1,4 @@
-# 04-JS 异步编程-4-async/await
+# 12-JS 异步编程-4-async/await
 
 ## 一 ES7 的 async/await
 
