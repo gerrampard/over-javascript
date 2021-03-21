@@ -158,7 +158,7 @@ function select(callback) {
 
 上述的 once 方法会将所有请求压入事件队列中，利用其执行一次就移除监视器的特点，保证每一个回调函数只会被执行一次。此处可能引发侦听器过多警告，可以通过调用`setMaxListeners(0)`移除警告或者设置更大值。
 
-## 手写 EventEmitter
+## 四 手写 EventEmitter
 
 ```js
 function Event() {
