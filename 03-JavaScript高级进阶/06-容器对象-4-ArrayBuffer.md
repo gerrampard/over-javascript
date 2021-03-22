@@ -1,4 +1,4 @@
-# 05-容器对象-4-ArrayBuffer
+# 06-容器对象-4-ArrayBuffer
 
 ## 一 定型数组概念
 

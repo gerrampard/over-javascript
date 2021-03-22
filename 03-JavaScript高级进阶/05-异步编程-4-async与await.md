@@ -1,4 +1,4 @@
-# 06-异步编程-4-async 与 await
+# 05-异步编程-4-async 与 await
 
 ## 一 ES7 的 async/await
 
