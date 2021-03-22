@@ -25,7 +25,7 @@ cookie 特点：
 
 构造一个携带 Cookie 的请求：
 
-```
+```txt
 curl -v -H "Cookie: foo=bar;baz=val" "http://127.0.0.1:3000"
 ```
 
@@ -71,7 +71,7 @@ function hande(req, res) {
 
 响应的 Cookie 值在 Set-Cookie 字段中，其格式如下：
 
-```
+```txt
 Set-Cookie: name=value; Path=/; Expires=Sun, 23-Apr-23 09:01:35 GMT; Domain=.domain.com;
 ```
 
@@ -201,7 +201,7 @@ app.listen(3000);
 
 cookie 的其他配置：
 
-```
+```txt
 domain：将cookie分配给特定的子域名，但是不能分配给和服务器所用域名不同的域名
 path：控制应用该cookie的路径，默认是 /  应用到所有页面上，如果参数是 /foo，则会应用到 /foo /foo/bar等路径上
 maxAge：cookie有效期，单位是毫秒

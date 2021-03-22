@@ -2,6 +2,8 @@
 
 ## 一 Node 连接 mysql
 
+### 1.1 原生连接
+
 ```JavaScript
 let db=mysql.createConnection({host, port, user, password, database});
 db.query('select * from user', (err, data)=>{});
@@ -35,9 +37,9 @@ app.listen(3000);
 
 ```
 
-## 二 ORM 框架 sequlize
+### 1.2 ORM 框架 sequlize
 
-```
+```txt
 sequelize框架需要额外安装mysql2 包
 npm install mysql2 --save
 npm install sequelize --save
@@ -98,7 +100,9 @@ let age = 22;
 
 ```
 
-## 一 Node 与 Redis
+## 二 Node 连接 Redis
+
+### 2.1 连接示例
 
 Redis 官方推荐的 Node.js 连接 Redis 驱动包有 node_redis 和 ioredis。本文以 ioredis 为例。
 
@@ -162,7 +166,7 @@ sub.on('message', function (channel1, message) {
 
 注意：redis 建立连接也是异步的。连接建立完成前的 redi 操作都会被加入到离线任务队列中，连接成功后，按顺序依次执行。
 
-## 二 koa 与消息队列
+### 2.2 消息队列
 
 一般来说，消息队列有两种场景：
 
@@ -195,7 +199,7 @@ client.on('message', function (channel, message) {
 })
 ```
 
-## 一 Node 连接 mongodb
+## 三 Node 连接 mongodb
 
 ```JavaScript
 const MongoClient = require('mongodb').MongoClient;
@@ -234,7 +238,7 @@ exports.insertOne = function (dbname,collectionName,json,callback) {
 
 ```
 
-//使用：
+使用：
 
 ```JavaScript
 const db = require('./db');
