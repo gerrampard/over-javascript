@@ -250,6 +250,93 @@ ints.copyWithin(5)
 console.log(ints) // [0, 1, 2, 3, 4, 0, 1, 2, 3, 4]
 ```
 
+### 2.6 数组打平 flatten()
+
+ECMAScript 2019 在 Array.prototype 上增加了两个方法： flat()和 flatMap()。这两个方法为打平数组提供了便利。如果没有这两个方法，则打平数组就要使用迭代或递归。
+
+下面是如果没有这两个新方法要打平数组的一个示例实现：
+
+```js
+function flatten(sourceArray, flattenedArray = []) {
+  for (const element of sourceArray) {
+    if (Array.isArray(element)) {
+      flatten(element, flattenedArray)
+    } else {
+      flattenedArray.push(element)
+    }
+  }
+  return flattenedArray
+}
+const arr = [[0], 1, 2, [3, [4, 5]], 6]
+console.log(flatten(arr))
+// [0, 1, 2, 3, 4, 5, 6]
+```
+
+这个例子在很多方面像一个树形数据结构：数组中每个元素都像一个子节点，非数组元素是叶节点。因此，这个例子中的输入数组是一个高度为 2 有 7 个叶节点的树。打平这个数组本质上是对叶节点的按序遍历。
+
+有时候如果能指定打平到第几级嵌套是很有用的。比如下面这个例子，它重写了上面的版本，允许指定要打平几级：
+
+```js
+function flatten(sourceArray, depth, flattenedArray = []) {
+  for (const element of sourceArray) {
+    if (Array.isArray(element) && depth > 0) {
+      flatten(element, depth - 1, flattenedArray)
+    } else {
+      flattenedArray.push(element)
+    }
+  }
+  return flattenedArray
+}
+const arr = [[0], 1, 2, [3, [4, 5]], 6]
+console.log(flatten(arr, 1))
+// [0, 1, 2, 3, [4, 5], 6]
+```
+
+为了解决上述问题，规范增加了 Array.prototype.flat()方法。该方法接收 depth 参数（默认值为 1），返回一个对要打平 Array 实例的浅复制副本。下面看几个例子：
+
+```js
+const arr = [[0], 1, 2, [3, [4, 5]], 6]
+console.log(arr.flat(2))
+// [0, 1, 2, 3, 4, 5, 6]
+console.log(arr.flat())
+// [0, 1, 2, 3, [4, 5], 6]
+```
+
+因为是执行浅复制，所以包含循环引用的数组在被打平时会从源数组复制值：
+
+```js
+const arr = [[0], 1, 2, [3, [4, 5]], 6]
+arr.push(arr)
+console.log(arr.flat())
+// [0, 1, 2, 3, 4, 5, 6, [0], 1, 2, [3, [4, 5]], 6]
+```
+
+Array.prototype.flatMap()方法会在打平数组之前执行一次映射操作。在功能上， arr.flatMap(f)与 arr.map(f).flat()等价；但 arr.flatMap()更高效，因为浏览器只需要执行一次遍历:
+
+```js
+const arr = [[1], [3], [5]]
+console.log(arr.map(([x]) => [x, x + 1]))
+// [[1, 2], [3, 4], [5, 6]]
+console.log(arr.flatMap(([x]) => [x, x + 1]))
+// [1, 2, 3, 4, 5, 6]
+```
+
+flatMap()在非数组对象的方法返回数组时特别有用，例如字符串的 split()方法。来看下面的例子，该例子把一组输入字符串分割为单词，然后把这些单词拼接为一个单词数组：
+
+```js
+const arr = ['Lorem ipsum dolor sit amet,', 'consectetur adipiscing elit.']
+console.log(arr.flatMap(x => x.split(/[\W+]/)))
+// ["Lorem", "ipsum", "dolor", "sit", "amet", "", "consectetur", "adipiscing","elit", ""]
+```
+
+对于上面的例子，可以利用空数组进一步过滤上一次映射后的结果，这也是一个数据处理技巧（虽然可能会有些性能损失）。下面的例子扩展了上面的例子，去掉了空字符串:
+
+```js
+const arr = ['Lorem ipsum dolor sit amet,', 'consectetur adipiscing elit.']
+console.log(arr.flatMap(x => x.split(/[\W+]/)).flatMap(x => x || []))
+// ["Lorem", "ipsum", "dolor", "sit", "amet", consectetur", "adipiscing", "elit"]
+```
+
 ## 三 数组迭代相关的实例方法
 
 ### 3.0 数组的简单迭代
