@@ -25,7 +25,7 @@ Ajax 是客户端（浏览器）与服务端通信的方式，自然少不了服
 
 ![node项目](../images/net/ajax-01.png)
 
-图中的 package-lock.json 本示例不需要，package.json 内容如下：
+package.json 内容如下：
 
 ```json
 {

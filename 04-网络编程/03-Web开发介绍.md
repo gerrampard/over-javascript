@@ -1,4 +1,4 @@
-# 02- Web 开发介绍
+# 03- Web 开发介绍
 
 ## 一 Web 开发的本质
 
@@ -66,3 +66,23 @@ URL 是 URI 的一种，但不是所有的 URI 都是 URL，访问机制决定�
 
 - URL：`ftp://ftp.down/1.txt`
 - URI：`tel:+1-010-11-1311`
+
+## 三 通信方式
+
+实现网页客户端与服务端通信的方式有两种：
+
+- 表单：利用表单提交给服务端
+- Ajax：利用浏览器提供的原生 Ajax 对象提交数据给服务端，有两种实现：
+  - XHR 对象：即 XMLHttpRequest 对象，比较难用，适合较老的浏览器
+  - fetch()：新的标准，支持 promise 、服务线程等，很强大
+
+表单提交数据方式演示：
+
+```html
+<form action="/upload" enctype="multipart/form-data" method="post">
+  Username: <input type="text" name="username" /> Password:
+  <input type="password" name="password" /> File:
+  <input type="file" name="file" />
+  <input type="submit" />
+</form>
+```
