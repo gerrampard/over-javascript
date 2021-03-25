@@ -39,11 +39,11 @@ Koa 与 Express 的不同：
 - Express 内部支持路由，Koa 没有路由管理
 - Express 的中间件模型是传统的顺序式，而 Koa 是洋葱模型
 
-## 二 koa 的中间件
+## 二 洋葱模型
 
-### 2.1 koa 中间件 demo
+### 2.1 洋葱模型的执行
 
-中间件函数是一个带有 ctx 和 next 两个参数的简单函数。next 用于将中间件的执行权交给下游的中间件。
+中间件函数是一个带有 ctx 和 next 两个参数的简单函数。next() 函数就是在其内部调用下一个中间件函数，返回的其实是一个 Promise 对象，该对象内部包裹了下一个中间件的返回结果。next 用于将中间件的执行权交给下游的中间件。
 
 ```js
 const koa = require('koa')
@@ -51,17 +51,17 @@ const koa = require('koa')
 let app = new koa()
 
 app.use((ctx, next) => {
-  console.log('执行中间件1')
+  console.log('1')
   next()
-  console.log('next之后的代码1')
-  ctx.body = 'hello world2'
+  console.log('2')
+  ctx.body = 'hello world1'
 })
 
 app.use((ctx, next) => {
-  console.log('执行中间件2')
+  console.log('3')
   ctx.body = 'hello world2'
   next()
-  console.log('next之后的代码2')
+  console.log('4')
 })
 
 app.listen(3000)
@@ -70,16 +70,76 @@ app.listen(3000)
 执行结果：按照顺序执行了中间件代码，再按反方向执行一遍 next 之后的代码，web 界面也输出的是 hello world2：
 
 ```txt
-执行中间件1
-执行中间件2
-next之后的代码2
-next之后的代码1
+1
+3
+4
+2
 ```
 
 上述的执行方式，称之为洋葱模型：
 ![洋葱模型](/images/node/yangchong.png)
 
-Koa 中间件相比 Express 中间件：按照洋葱模型执行，中间件无论写在什么位置，都会先执行。
+**Koa 中间件相比 Express 中间件：按照洋葱模型执行，中间件无论写在什么位置，都会先执行**。
+
+### 2.2 生产实践
+
+推荐所有的中间件的 next()均使用 `async/await` 形式包裹，这是因为中间件中一般需要处理一些事情，包裹之后更方便编码，更关键的是：所有中间件如果都被包裹，则不会引发顺序错乱：
+
+```js
+app.use(async (ctx, next) => {
+  console.log('2')
+  await next()
+  console.log('2')
+  ctx.body = 'hello world1'
+})
+
+app.use(async (ctx, next) => {
+  console.log('3')
+  ctx.body = 'hello world2'
+  await next()
+  console.log('4')
+})
+
+// 顺序不变：1 3 4 2
+```
+
+如果不使用 async/await 的中间件与使用包裹的中间件进行了混用，则顺序就会发生变化：
+
+```js
+app.use((ctx, next) => {
+  console.log('1')
+  next()
+  console.log('2')
+  ctx.body = 'hello world1'
+})
+
+app.use(async (ctx, next) => {
+  console.log('3')
+  ctx.body = 'hello world2'
+  await next()
+  console.log('4')
+})
+
+// 顺序变了：1 3 2 4
+```
+
+## 2.3 洋葱模型的意义
+
+为什么 Koa 被称为下一代 web 框架？本质上是舍弃了路由之后更基础的设计理念，以及洋葱模型带来的便利。
+
+比如现在需要知道所有中间件加载的时间，可以直接在第一个中间件的 next 之后获取时间：
+
+```js
+// 第一个中间件
+app.use(async (ctx, next) => {
+  console.time()
+  await next()
+  // next 之后的代码表示 中间件已经全部执行完毕了
+  console.timeEnd()
+})
+```
+
+此时在 Express 中就没有这么多顺利了。
 
 ## 三 中间件应用
 
@@ -167,7 +227,9 @@ app.use(router.allowedMethods()) //根据ctx.status设置响应头
 app.listen(3000)
 ```
 
-## 一 koa-router 创建路由
+## 三 路由管理
+
+### 3.1 koa-router 基本使用
 
 ```js
 const Koa = require('koa')
@@ -191,9 +253,7 @@ app.use(router.allowedMethods()) //根据ctx.status设置响应头
 app.listen(3000)
 ```
 
-## 二 路由设计
-
-### 1.1 路由前缀
+### 3.2 路由前缀
 
 ```js
 let home = new Router() //子路由
@@ -221,7 +281,7 @@ router.use('/home', home.routes())
 router.use('/page', page.routes())
 ```
 
-### 1.2 RESTful 规范
+### 3.3 RESTful 规范
 
 关于 RESTful：koa-router 作者推荐使用该风格，即所有的事物都应该被抽象为资源，每个资源对应唯一的 URL
 
@@ -234,7 +294,9 @@ router.use('/page', page.routes())
 /users/:id              # get方式：获取用户
 ```
 
-### 1.3 router.all()
+上述以 `/:id` 参数接收方式的路由也可以称呼为**动态路由**。
+
+### 3.4 router.all()
 
 router.all() 可以用来模糊匹配
 
@@ -253,13 +315,13 @@ router.all('/', async (ctx, next) => {
 })
 ```
 
-### 1.4 多中间件处理方式
+### 3.5 路由中多中间件处理方式
 
 ```js
 router.get('/', middleware, midlleware, ctx => {})
 ```
 
-### 1.5 嵌套路由
+### 3.6 嵌套路由
 
 嵌套路由也可以实现类似路由前缀的功能，但是能够额外添加动态参数
 
@@ -281,235 +343,77 @@ userRouter.use(
 app.use(userRouter.routes())
 ```
 
-## 三 请求处理
+### 3.7 多路由文件实践
 
-### 3.1 GET 请求
-
-```js
-app.use(async function (ctx) {
-  // console.log(ctx.request);
-  // console.log(ctx.req);
-  console.log(ctx.url) //login?name=lisi
-  console.log(ctx.request.query) //{ name: 'lisi' }
-  console.log(ctx.query) //{ name: 'lisi' }
-  console.log(ctx.querystring) //name=lisi
-  ctx.body = 'hello'
-})
-```
-
-### 3.2 动态路由 /
-
-使用 /: 接收参数
-
-```JavaScript
-router.get('/news/:id/:name', async (ctx)=>{
-// localhost:3000/news/1/lisi 输出{"id":"1","name":"lisi"}
-    ctx.body = ctx.params;
-});
-```
-
-### 3.3 POST 请求
+当项目中有多个路由时，可以进行分文件开发，便于维护：
 
 ```js
-app.use(async function (ctx) {
-  if (ctx.url == '/' && ctx.method == 'GET') {
-    let html = `<form action="/" method="post">
-    <input type="text" id="username" name="username" value="">
-    <input type="text" id="password" name="password" value="">
-    <input type="submit" value="登录">
-</form>`
-    ctx.body = html
-  } else if (ctx.url == '/' && ctx.method == 'POST') {
-    let parseData = await parsePostData(ctx)
-    ctx.body = parseData
-  } else {
-    ctx.body = '404'
-  }
-})
+// userRouter.js  user 模块路由
+const Router = require('koa-router')
+const userRouter = new Router()
+userRouter.get('/users', () => {})
+userRouter.post('/users/:uid', () => {})
+module.exports = userRouter
 
-//解析post方法
-function parsePostData(ctx) {
-  return new Promise((resolve, reject) => {
-    try {
-      let postdata = ''
-      ctx.req.on('data', data => {
-        postdata += data
-      })
-      ctx.req.addListener('end', function () {
-        resolve(postdata)
-      })
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-//转换为json方法
-function parseQueryStr(queryStr) {
-  let queryData = {}
-  let queryStrList = queryStr.split('&')
-  console.log(queryStrList)
-  for (let [index, queryStr] of queryStrList.entries()) {
-    let itemList = queryStr.split('=')
-    console.log(itemList)
-    queryData[itemList[0]] = decodeURIComponent(itemList[1])
-  }
-  return queryData
-}
+// orderRouter.js order 模块路由
+const Router = require('koa-router')
+const orderRouter = new Router()
+orderRouter.get('/orders', () => {})
+orderRouter.post('/ords/:oid', () => {})
+module.exports = orderRouter
 ```
 
-### 2.4 koa-bodyparser 中间件处理 post
+此时在 app.js，或者单独引设置一个 routes.js 内引入这些路由：
 
 ```js
 const Koa = require('koa')
-const bodyParser = require('koa-bodyparser')
+const Router = require('koa-router')
+const userRouter = require('./routers/userRouter')
+const orderRouter = require('./routers/orderRouter')
 
 const app = new Koa()
+const router = new Router()
 
-app.use(bodyParser())
-app.use(async ctx => {
-  if (ctx.url == '/' && ctx.method == 'GET') {
-    let html = `<form action="/" method="post">
-    <input type="text" id="username" name="username" value="">
-    <input type="text" id="password" name="password" value="">
-    <input type="submit" value="登录">
-</form>`
-    ctx.body = html
-  } else if (ctx.url == '/' && ctx.method == 'POST') {
-    let postData = ctx.request.body
-    ctx.body = postData
-  } else {
-    ctx.body = '404' //{"username":"22222","password":"22555"}
+app.use(userRouter.routes())
+app.use(orderRouter.routes())
+app.use(router.allowedMethods()) //根据ctx.status设置响应头
+
+app.listen(3000)
+```
+
+为了减少重复书写 `app.use(userRouter.routes())` 这样的路由加载，可以使用 `require-directory` 库进行整合:
+
+```js
+requireDirectory(module, './routers', { visit: whenLoadModule })
+
+function whenLoadModule(obj) {
+  if (obj instanceof Router) {
+    app.use(obj.routes())
   }
-})
-app.listen(8001)
-```
-
-## 一 洋葱模型应用
-
-### 1.1 next 函数
-
-next() 函数就是在其内部调用下一个中间件函数，返回的其实是一个 Promise 对象，该对象内部包裹了下一个中间件的返回结果：
-
-```js
-app.use((ctx, next) => {
-  console.log(1)
-  const p = next() // 通过 p.then() 即可获取 aaa 结果
-  console.log(p)
-  console.log(2)
-})
-
-app.use((ctx, next) => {
-  console.log(3)
-  next()
-  console.log(4)
-  return 'aaa'
-})
-```
-
-输出结果为：
-
-```txt
-1
-3
-4
-Promise { 'aaa' }
-2
-```
-
-### 1.2 async/await 的使用
-
-Koa2 原生支持了 async/await，在采用该语法糖后，如果不注意会造成中间件的加载错误：
-
-```js
-app.use(async (ctx, next) => {
-  console.log(1)
-  const p = await next() // 通过 p.then() 即可获取 aaa 结果
-  console.log(p)
-  console.log(2)
-})
-
-app.use(async (ctx, next) => {
-  console.log(3)
-  await next()
-  console.log(4)
-  return 'aaa'
-})
-```
-
-上述代码运行的顺序是符合洋葱模型的，输出结果为：
-
-```txt
-1
-3
-4
-'aaa'
-2
-```
-
-async 关键字的意义就是将返回结果包装为 Promise，而 await 能够实现类似线程阻塞的功能。
-
-### 1.3 注意事项
-
-使用 async/await 后，如果一部分中间件忘记添加了该关键字，则容易出现顺序异常：
-
-```js
-app.use((ctx, next) => {
-  console.log(1)
-  next()
-  console.log(2)
-})
-
-app.use(async (ctx, next) => {
-  console.log(3)
-  await next()
-  console.log(4)
-})
-```
-
-输出的结果为不再是`1342`，而是：
-
-```txt
-1
-3
-2
-4
-```
-
-这是因为第二个中间件函数内部的 next() 使用了 await 进行阻塞，直接将下一个要执行的中间件函数运行结束。这便不是洋葱模型了，如果要保证洋葱模型，推荐全部使用 async 包裹，next 函数使用 await 阻塞。
-
-## 二 洋葱模型的意义
-
-为什么 Koa 被称为下一代 web 框架？本质上是舍弃了路由之后更基础的设计理念，以及洋葱模型带来的便利。
-
-比如现在需要知道所有中间件加载的时间，可以直接在第一个中间件的 next 之后获取时间：
-
-```js
-// 第一个中间件
-app.use(async (ctx, next) => {
-  console.time()
-  await next()
-  // next 之后的代码表示 中间件已经全部执行完毕了
-  console.timeEnd()
-})
-```
-
-此时在 Express 中就没有这么多顺利了。
-
-## 三 Koa 中间件源码阅读
-
-koa 的中间件：
-
-中间件的本质是一个函数，在 koa 中，该函数通常具有 ctx 和 next 两个参数，分别表示封装好的 req/res 对象以及下一个要执行的中间件，当有多个中间件的时候，本质上是一种嵌套调用，就像洋葱。
-
-koa 和 express 都是用 app.use()来加载中间件，但是内部实现大不相同，koa 的源码文件 Application.js 中定义了 use 方法：
-
-```js
-use(fn){
-    //....
-    this.middleware.push(fn);
-    return this;
 }
 ```
 
-koa 在 application.js 中维护了一个 middleware 的数组，如果有新的中间件被加载，就 push 到这个数组中。
+注意：**笔者不推荐这种整合方式，该库长久不更新，且每个 router 文件 都要导出，路由排查困难。**
+
+## 四 参数处理
+
+示例：
+
+```js
+app.use(async function (ctx) {
+  console.log(ctx.url) //login?name=lisi
+  console.log(ctx.querystring) //name=lisi
+
+  // 参数方式一： /login?name=lisi
+  console.log(ctx.query) //{ name: 'lisi' }
+
+  // 参数方式二：/login/:name   实际路由：/login/lisi
+  console.log(ctx.params) // 获取动态路由参数
+
+  // 参数方式三：body传参
+  console.log(ctx.body) // 获取动态路由参数
+
+  // 参数方式四：headers传参
+  console.log(ctx.header)
+})
+```
