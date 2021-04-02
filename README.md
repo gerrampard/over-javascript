@@ -52,23 +52,28 @@ OverNote 系列笔记是我在平时一些学习时间阅读书籍博客、观�
 - [《JavaScript 语言精髓与编程实践（第 3 版）》](https://book.douban.com/subject/35085910/)：国内非常深入优秀的 JS 书籍
 - [《深入理解 ECMAScript6》](https://book.douban.com/subject/27072230/)：很好的 ES6 书籍
 - [《ECMAScript6 入门》第 3 版](https://book.douban.com/subject/27127030/)：很好的 ES6 书籍
+- [《JavaScript 权威指南》第 7 版](https://book.douban.com/subject/35396470/)：即犀牛书，JS 的百科全书，与红宝书冲突过多
 
-其他优秀书籍：
+其他优秀书籍，可以不看：
 
 ```txt
-JavaScript：
-《Head First JavaScript程序设计》：适合零基础入门
+HTML与CSS：
+《HTML 5与CSS 3核心技法》：彩色书籍，推荐作为零基础入门使用
+
+JavaScript
 《JavaScript编程精解》第3版：佳作《Eloquent JavaScript》，深入浅出，整体偏基础，翻译不佳。
-《JavaScript权威指南》第7版：即犀牛书，JS的百科全书，不建议阅读，过于庞大，适合作为工具书，且与红宝书冲突过多
 《JavaScript语言精粹》修订版：即蝴蝶书，短小精悍，附录中对JS语言糟粕的汇总值得一看！但大多问题已被ES6相关书籍总结。
-《JavaScript编程全解》-井上诚一郎 ：不推荐，内容全面详细，但是被《红宝书》完全替代
 
 DOM：
-《JavaScript DOM 编程艺术》第 2 版：适合零基础入门
-《HTML5 秘籍（第 2 版）》：内容较好，但是与红宝书重复
-《HTML5权威指南》：不推荐，与 《HTML5 秘籍》冲突
+《JavaScript DOM 编程艺术》第 2 版：内容极简，适合零基础入门
+《HTML5 秘籍（第 2 版）》：内容较好，推荐学习
 《锋利的 jQuery》第 2 版：适合学习jQuery时一看
 《JavaScript&jQuery交互式Web前端开发》：适合学习使用jQuery制作优秀的交互式网站
+
+不推荐：
+《Head First JavaScript程序设计》：零基础入门书籍，较老且与《HTML 5与CSS 3核心技法》冲突
+《JavaScript编程全解》-井上诚一郎 ：不推荐，内容全面详细，但是被《红宝书》完全替代
+《HTML5权威指南》：不推荐，与 《HTML5 秘籍》冲突
 ```
 
 **JavaScript 提升**：
