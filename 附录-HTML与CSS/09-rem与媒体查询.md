@@ -42,8 +42,7 @@ rem 可以用来解决布局中一些大小问题，如：
 ```js
 ;(function (doc, win) {
   let docElement = doc.documentElement
-  let resizeEvent =
-    'orientationchange' in window ? 'orientationchange' : 'resize'
+  let resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize'
 
   let recalc = function () {
     let clientWidth = docElement.clientWidth
@@ -89,8 +88,7 @@ rem 可以用来解决布局中一些大小问题，如：
   <script>
     ;(function (doc, win) {
       let docElement = doc.documentElement
-      let resizeEvent =
-        'orientationchange' in window ? 'orientationchange' : 'resize'
+      let resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize'
       let recalc = function () {
         let clientWidth = docElement.clientWidth
         if (!clientWidth) return
@@ -165,9 +163,7 @@ vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 1
 
 ## 三 rem 与媒体查询配合实现移动端布局
 
-### 3.1
-
-配合使用案例：
+### 3.1 配合使用案例
 
 ```css
 @media and (min-width: 320px) {
@@ -193,11 +189,7 @@ vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 1
 
 ```html
 /* 针对不同的屏幕尺寸，引入不同的css资源 */
-<link
-  rel="stylesheet"
-  href="./small.css"
-  media="screen and (min-width:320px)"
-/>
+<link rel="stylesheet" href="./small.css" media="screen and (min-width:320px)" />
 <link rel="stylesheet" href="./big.css" media="screen and (min-width:640px)" />
 ```
 
@@ -209,3 +201,61 @@ vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 1
 - flexible.js+rem：更简便，该库由淘宝推出，有了其支持，不再需要对不同屏幕进行媒体查询。其原理是将当前设备划分为了 10 等份，在不同设备下比例一致。如当前设计稿是 750px，那么只需要把 html 的字体设置为 750px/10 即可，当前元素的 rem 值就是：页面元素的 px 值/75，其他的交给了库自己运算
 
 贴士：vscode 插件 cssrem 可以快速帮助运算。
+
+## 四 CSS 预处理语言
+
+### 4.1 CSS 预处理语言概念
+
+CSS 由于其不支持变量、函数运算等缺陷，在开发时候很不便，目前市面上有三种 CSS 扩展语言（预处理器）：
+
+- Less
+- Sass
+- Stylus
+
+扩展语言并没有减少 CSS 的功能，而是在现有语法基础上，添加一些特性，如：
+
+- 变量
+- Mixin
+- 运算
+- 函数
+
+Less 中文网址：<http://lesscss.cn>
+
+### 4.2 Less 简单使用
+
+新建后缀为 less 的文件：
+
+```less
+// index.less less可以使用 // 注释
+
+// @ 定义一个变量
+@baseColor: yellowgreen;
+// 使用变量
+body {
+  background-color: @baseColor;
+}
+
+// less 嵌套
+#app {
+  font-size: 14px;
+  .header {
+    height: 200px;
+    .header-left {
+      bacground-color: @baseColor;
+    }
+    .header-right {
+      bacground-color: #fff;
+    }
+
+    a {
+      color: red;
+      // &符号被解析为伪类、伪元素、交集选择器
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+}
+```
+
+HTML 页面无法直接使用 Less，需要将 Less 转换为 CSS，VSCode 中安装 `Easy LESS` 插件即可在编写 Less 时自动将 less 转换为 css。
