@@ -1,130 +1,6 @@
 # 02-rem 与媒体查询
 
-## 一 rem
-
-### 1.0 长度单位
-
-移动设备与 PC 设备的最大差异在于屏幕的大小，包含两个关键因素：
-
-- 屏幕尺寸：屏幕对角线的长度，一般使用英寸来度量
-- 屏幕分辨率：屏幕水平和垂直方向的像素数，一般使用 px 来度量
-
-手机屏幕大小如 4.7、5.0、6.0 这些其实是其对角线的长度，单位一般是英寸：
-
-![屏幕大小](../images/css/moblie-01.png)
-
-所以长度单位可以分为：
-
-- 绝对长度单位：in 英寸、cm 厘米
-- 相对长度单位：px 像素、em、pt
-
-px 是最常用的长度单位，此外还有 em、pt（点）、in（英寸）、cm（厘米）等可以作为开发中的长度单位。
-
-### 1.1 rem 适配布局概念
-
-px 是一个实际的像素大小，rem（root em）、em 都是相对大小：
-
-- em：相对于父元素的字体大小。比如父元素的字体为 5px，子元素为 2em，则子元素的字体为 10px。
-- rem：相对于 html 根元素字体大小（默认为 16px）。比如 html 设置了 `font-size=10px`，若某个非根元素设置 `width:2rem;` 换算为 px 就是 20px。
-
-当使用 rem 作为单位时，只要 html 元素中的字体大小发生改变，那么整体的布局就会相应发生改变，其适配的核心方案是随着屏幕的变化，字体发生相应变化，界面进行等比例缩放。
-
-rem 可以用来解决布局中一些大小问题，如：
-
-- 传统布局、flex 布局中，文字都不能随着屏幕大小变化而变化
-- 流式布局和 flex 布局主要针对宽度进行布局，高度不能很好的定义
-- 在屏幕发生变化时，元素的宽高不能很好的进行等比例缩放
-
-### 1.2 rem 实现方式一：js 控制
-
-自动改变字体大小的 js：
-
-```js
-;(function (doc, win) {
-  let docElement = doc.documentElement
-  let resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize'
-
-  let recalc = function () {
-    let clientWidth = docElement.clientWidth
-    if (!clientWidth) return
-
-    // 设计稿基准为750px
-    if (clientWidth >= 750) {
-      docElement.style.fontSize = '100px'
-    } else {
-      docElement.style.fontSize = 100 * (clientWidth / 750) + 'px'
-    }
-  }
-
-  if (!doc.addEventListener) return
-  win.addEventListener(resizeEvent, recalc, false)
-  doc.addEventListener('DOMContentLoaded', recalc, false)
-})(document, window)
-```
-
-有了该脚本，只需要将设计稿（750px）量出的像素值除以 100 即可得到 rem 的值.这里要注意，html 根元素的字体大小改变会引起一个 bug：图片与文件间距会出现变化，可以为 body 设置固定大小即可：
-
-```html
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-  }
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 16px;
-  }
-
-  .header {
-    background: #ff5555;
-    height: 0.82rem;
-    width: 100%;
-  }
-</style>
-
-<body>
-  <div class="header"></div>
-
-  <script>
-    ;(function (doc, win) {
-      let docElement = doc.documentElement
-      let resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize'
-      let recalc = function () {
-        let clientWidth = docElement.clientWidth
-        if (!clientWidth) return
-        if (clientWidth >= 750) {
-          docElement.style.fontSize = '100px'
-        } else {
-          docElement.style.fontSize = 100 * (clientWidth / 750) + 'px'
-        }
-      }
-
-      if (!doc.addEventListener) return
-      win.addEventListener(resizeEvent, recalc, false)
-      doc.addEventListener('DOMContentLoaded', recalc, false)
-    })(document, window)
-  </script>
-</body>
-```
-
-### 1.3 rem 实现方式二：vw 布局
-
-vw 布局可以看做的是 rem 的进化版，比上述 js 控制的方式更加简单，但是只兼容 iOS8、Android4.4 以上系统。
-
-vw 布局即：
-
-```html
-<style>
-  html {
-    <!-- 设计稿分为100份： 100/750*100 -->
-    font-size: 13.33333333vw;
-  }
-</style>
-```
-
-vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 100vw，1px 就是 0.1333333vw。为了方便计算，放大 100 倍，如果 html 是 100px，则 1px 就是 0.13333333vw，100px 就是 13.333333vw
-
-## 二 媒体查询
+## 一 媒体查询
 
 媒体查询（Media Query）是 CSS3 引入的新技术，可以针对不同的屏幕尺寸设置不同的样式，在重置浏览器大小的过程中，页面也会根据浏览器的宽度和高度重新渲染页面！
 
@@ -161,28 +37,119 @@ vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 1
 }
 ```
 
-## 三 rem 与媒体查询配合实现移动端布局
+## 二 rem 适配方案
 
-### 3.1 配合使用案例
+### 2.0 rem 适配布局概念
+
+px 是一个实际的像素大小，rem（root em）、em 都是相对大小：
+
+- em：相对于当前元素的字体大小，没有则相对于父级。比如父元素的字体为 5px，子元素为 2em，则子元素的字体为 10px。
+- rem：相对于 html 根元素字体大小（默认为 16px）。比如 html 设置了 `font-size=10px`，若某个非根元素设置 `width:2rem;` 换算为 px 就是 20px。
+
+当使用 rem 作为单位时，只要 html 元素中的字体大小发生改变，那么整体的布局就会相应发生改变，其适配的核心方案是随着屏幕的变化，字体发生相应变化，界面进行等比例缩放。
+
+rem 可以用来解决布局中一些大小问题，如：
+
+- 传统布局、flex 布局中，文字都不能随着屏幕大小变化而变化
+- 流式布局和 flex 布局主要针对宽度进行布局，高度不能很好的定义
+- 在屏幕发生变化时，元素的宽高不能很好的进行等比例缩放
+
+这里就涉及 html 标签的 font-size 大小动态设置问题：
+
+```txt
+通常会将屏幕划分为15等份，根据需求也可以设置为10等份，20等份，用页面元素大小除以不同的html字体大小，会发现其比例相同：
+
+在设计稿为750px时，其html字体的大小为：750/15=50px
+在设备中为320px时，其html字体的大小为：320/15=21.33px
+
+现在假设有一个100*100px的页面元素：
+在750屏幕下，html字体大小为50.00px，转换为rem：100/50.00，即：2rem*2rem，宽高比例是1比1
+在320屏幕下，rem值上面已经写好是2*2，但是其字体是：21.33px，实际像素2rem即：42.66px * 42.66px，宽高比例没变！
+```
+
+由上得出：**`rem值` = `页面元素px` / `html的font-size`**。
+
+贴士：如果不设置字体大小，1rem=16px
+
+### 2.1 rem 实现方式一：js 控制
+
+现在的核心问题就是根据屏幕自动计算 rem 的值，下面的脚本可以实现自动改变字体大小。有了该脚本，只需要将设计稿（750px）量出的像素值除以 100 即可得到 rem 的值.这里要注意，html 根元素的字体大小改变会引起一个 bug：图片与文件间距会出现变化，可以为 body 设置固定大小即可：
+
+```html
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+  }
+
+  .header {
+    background: #ff5555;
+    height: 0.82rem;
+    width: 100%;
+  }
+</style>
+
+<body>
+  <div class="header"></div>
+
+  <script>
+    ;(function (doc, win) {
+      let docElement = doc.documentElement
+      let resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize'
+
+      let recalc = function () {
+        let clientWidth = docElement.clientWidth
+        if (!clientWidth) return
+
+        // 设计稿基准为750px
+        if (clientWidth >= 750) {
+          docElement.style.fontSize = '100px'
+        } else {
+          docElement.style.fontSize = 100 * (clientWidth / 750) + 'px'
+        }
+      }
+
+      if (!doc.addEventListener) return
+      win.addEventListener(resizeEvent, recalc, false)
+      doc.addEventListener('DOMContentLoaded', recalc, false)
+    })(document, window)
+  </script>
+</body>
+```
+
+### 2.2 rem 适配方式三：配合媒体查询
+
+常见需要配置的：
 
 ```css
-@media and (min-width: 320px) {
+html {
+  font-size: 50px;
+}
+
+@media screen and (min-width: 320px) {
   html {
-    font-size: 50px;
+    font-size: 21.3333px;
   }
 }
 
-@media and (min-width: 540px) and (max-width: 600px) {
+@media screen and (min-width: 360px) {
   html {
-    font-size: 100px;
+    font-size: 24px;
   }
 }
 
-@media and (min-width: 640px) {
+/* iphone678 */
+@media screen and (min-width: 375px) {
   html {
-    font-size: 100px;
+    font-size: 25px;
   }
 }
+
+/* 其他需要设置的常见屏幕：384 400 414 424 480 540 720 750 */
 ```
 
 当样式繁多时，使用媒体查询引入资源可以更好的实现移动端布局：
@@ -193,7 +160,28 @@ vw 即表示 1%的屏幕宽度，设计稿如果是 750px，则屏幕一共是 1
 <link rel="stylesheet" href="./big.css" media="screen and (min-width:640px)" />
 ```
 
-### 3.2 rem 在企业中的实践方案
+### 2.3 rem 实现方式二：vw 布局
+
+vw 布局可以看做的是 rem 的进化版，比上述 js 控制的方式更加简单，无需对字体大小进行控制，但是只兼容 iOS8、Android4.4 以上系统。
+
+vw 布局是将屏幕划分为 100 份，即屏幕是 100vw（也即 vw 是 1%的屏幕宽度），换算到在 750px 设计稿中就是 `750px=100vw`，1px 就是 `0.1333333333vw`。为了方便计算，实际开发中根元素不可能是 1px，放大 100 倍：
+
+```html
+<style>
+  html {
+    font-size: 13.33333333vw;
+  }
+  @media (min-width: 750px) {
+    html {
+      font-size: 100px;
+    }
+  }
+</style>
+```
+
+由于 vw 布局是自己将屏幕等份划分，所以也就不再依赖与 JS 脚本、媒体查询来控制字体大小，开发更方便。
+
+## 三 企业级 rem 适配总结
 
 目前有两种常见的实践方案：
 
@@ -222,6 +210,8 @@ CSS 由于其不支持变量、函数运算等缺陷，在开发时候很不便�
 Less 中文网址：<http://lesscss.cn>
 
 ### 4.2 Less 简单使用
+
+HTML 页面无法直接使用 Less，需要将 Less 转换为 CSS，VSCode 中安装 `Easy LESS` 插件即可在编写 Less 时自动将 less 转换为 css。
 
 新建后缀为 less 的文件：
 
@@ -258,4 +248,28 @@ body {
 }
 ```
 
-HTML 页面无法直接使用 Less，需要将 Less 转换为 CSS，VSCode 中安装 `Easy LESS` 插件即可在编写 Less 时自动将 less 转换为 css。
+Less 支持运算： `+ - * /`，运算符中间左右需要使用空格隔开。如果两个不同单位之间进行运算，运算结果的单位为第一个值的单位。如果两个值之间只有一个有单位，则运算结果取该单位。
+
+```less
+@border:5px + 5;
+
+body {
+  width: 200px - 50;
+}
+```
+
+less 引入另外一个 css：
+
+```css
+/* 引入common.less */
+@import 'common';
+```
+
+less 中运算 rem：
+
+```less
+@baseFont: 50;
+.box {
+  height: 100rem / @baseFont; /*高度为100px*/
+}
+```
